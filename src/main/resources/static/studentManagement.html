@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #2c3e50;
+        }
+        .page-header h1 {
+            font-weight: 600;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            border-radius: 10px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            padding: 1rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .form-control {
+            border-radius: 5px;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+            border-color: #80bdff;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+        .btn-warning {
+            background-color: #ffc107;
+            border: none;
+            color: #000;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            border: none;
+        }
+        .table {
+            margin-bottom: 0;
+        }
+        .table thead th {
+            border-top: none;
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        .table td, .table th {
+            vertical-align: middle;
+            padding: 1rem;
+        }
+        .update-form {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-top: 1rem;
+        }
+        .action-buttons .btn {
+            margin: 0 0.25rem;
+        }
+        .btn i {
+            margin-right: 0.5rem;
+        }
+        .table-responsive {
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        }
+        .error {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-users mr-2"></i>Student Management</h1>
+            <p class="text-muted">Manage your students efficiently</p>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-user-plus mr-2"></i>Add New Student
+            </div>
+            <div class="card-body">
+                <form id="add-student-form">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="add-firstName">First Name</label>
+                                <input type="text" class="form-control" id="add-firstName" placeholder="Enter first name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="add-lastName">Last Name</label>
+                                <input type="text" class="form-control" id="add-lastName" placeholder="Enter last name">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="add-email">Email</label>
+                                <input type="email" class="form-control" id="add-email" placeholder="Enter email">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="add-password">Password</label>
+                                <input type="password" class="form-control" id="add-password" placeholder="Enter password">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary" id="add-btn">
+                        <i class="fas fa-plus"></i>Add Student
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-table mr-2"></i>Student List
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">ID</th>
+                                <th scope="col">First Name</th>
+                                <th scope="col">Last Name</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="student-table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            loadStudents();
+        });
+
+        function loadStudents() {
+            $.ajax({
+                url: '/api/students',
+                type: 'GET',
+                success: function(data) {
+                    let tableBody = $('#student-table-body');
+                    tableBody.empty();
+                    data.forEach(student => {
+                        let row = `
+                            <tr>
+                                <td>${student.id}</td>
+                                <td>${student.firstName}</td>
+                                <td>${student.lastName}</td>
+                                <td>${student.email}</td>
+                                <td class="action-buttons">
+                                    <button type="button" class="btn btn-warning update-btn" data-id="${student.id}">
+                                        <i class="fas fa-edit"></i>Update
+                                    </button>
+                                    <button type="button" class="btn btn-danger delete-btn" data-id="${student.id}">
+                                        <i class="fas fa-trash"></i>Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                        tableBody.append(row);
+                    });
+                },
+                error: function(error) {
+                    console.error('Error fetching student data:', error);
+                    alert('Error loading students. Please try again later.');
+                }
+            });
+        }
+
+        $('#add-btn').click(function() {
+            let firstName = $('#add-firstName').val();
+            let lastName = $('#add-lastName').val();
+            let email = $('#add-email').val();
+            let password = $('#add-password').val();
+            $.ajax({
+                url: '/api/students/register',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ firstName: firstName, lastName: lastName, email: email, password: password }),
+                success: function(data) {
+                    alert('Student added successfully!');
+                    loadStudents();
+                    $('#add-firstName').val('');
+                    $('#add-lastName').val('');
+                    $('#add-email').val('');
+                    $('#add-password').val('');
+                },
+                error: function(error) {
+                    let errorMessage = 'Error adding student!';
+                    if (error.responseJSON && error.responseJSON.message) {
+                        errorMessage = error.responseJSON.message;
+                    } else if (error.status === 400) {
+                        errorMessage = 'Bad Request. Please check your input.';
+                    } else {
+                        errorMessage = 'An unexpected error occurred. Please try again later.';
+                    }
+                    alert(errorMessage);
+                    console.error('Error:', error);
+                }
+            });
+        });
+
+        function updateStudent(id, updatedStudent) {
+            $.ajax({
+                url: `/api/students/${id}`,
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify(updatedStudent),
+                success: function() {
+                    alert('Student updated successfully!');
+                    loadStudents();
+                },
+                error: function(error) {
+                    alert('Error updating student!');
+                    console.error('Error:', error);
+                }
+            });
+        }
+
+        $(document).on('click', '.update-btn', function() {
+            let row = $(this).closest('tr');
+            let id = $(this).data('id');
+            let firstName = row.find('td:eq(1)').text();
+            let lastName = row.find('td:eq(2)').text();
+            let email = row.find('td:eq(3)').text();
+            let updateForm = `
+                <form id="update-form-${id}" class="update-form">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="update-firstName-${id}">First Name</label>
+                                <input type="text" class="form-control" id="update-firstName-${id}" value="${firstName}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="update-lastName-${id}">Last Name</label>
+                                <input type="text" class="form-control" id="update-lastName-${id}" value="${lastName}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="update-email-${id}">Email</label>
+                                <input type="email" class="form-control" id="update-email-${id}" value="${email}">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary save-btn" data-id="${id}">
+                        <i class="fas fa-save"></i>Save Changes
+                    </button>
+                </form>
+            `;
+            row.find('td:last').html(updateForm);
+            $(`#update-form-${id}`).show();
+        });
+
+        $(document).on('click', '.save-btn', function() {
+            let id = $(this).data('id');
+            let firstName = $(`#update-firstName-${id}`).val();
+            let lastName = $(`#update-lastName-${id}`).val();
+            let email = $(`#update-email-${id}`).val();
+            updateStudent(id, { firstName: firstName, lastName: lastName, email: email });
+            $(this).closest('tr').find('.update-form').hide();
+        });
+
+
+        function deleteStudent(id) {
+            $.ajax({
+                url: `/api/students/${id}`,
+                type: 'DELETE',
+                success: function() {
+                    alert('Student deleted successfully!');
+                    loadStudents();
+                },
+                error: function(error) {
+                    alert('Error deleting student!');
+                    console.error('Error:', error);
+                }
+            });
+        }
+
+        $(document).on('click', '.delete-btn', function() {
+            let id = $(this).data('id');
+            if (confirm('Are you sure you want to delete this student?')) {
+                deleteStudent(id);
+            }
+        });
+    </script>
+</body>
+</html>

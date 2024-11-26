@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management System</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #858796;
+            --success-color: #1cc88a;
+            --info-color: #36b9cc;
+            --warning-color: #f6c23e;
+            --danger-color: #e74a3b;
+            --light-color: #f8f9fc;
+            --dark-color: #5a5c69;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: #f8f9fc;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color) !important;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 250px;
+            background: linear-gradient(180deg, var(--primary-color) 0%, #224abe 100%);
+            padding-top: 80px;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .sidebar-hidden {
+            transform: translateX(-250px);
+        }
+
+        .sidebar-link {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            text-decoration: none;
+        }
+
+        .sidebar-link i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        .card {
+            border: none;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.15rem 1.75rem rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid #e3e6f0;
+            padding: 1rem 1.25rem;
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+
+        .toggle-sidebar {
+            cursor: pointer;
+            padding: 0.5rem;
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+        }
+
+        .user-profile {
+            padding: 1rem;
+            text-align: center;
+            color: white;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 1rem;
+        }
+
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 1rem;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .user-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .user-role {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-250px);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        .loading-spinner {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+        }
+
+        .fade-transition {
+            transition: opacity 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="toggle-sidebar mr-3 d-none" id="sidebar-toggle">
+            <i class="fas fa-bars"></i>
+        </div>
+        <a class="navbar-brand" href="#">
+            <i class="fas fa-graduation-cap mr-2"></i>
+            Student MS
+        </a>
+        <div class="ml-auto d-flex align-items-center">
+            <div class="dropdown d-none" id="user-dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" id="userDropdown" data-toggle="dropdown">
+                    <i class="fas fa-user-circle fa-lg mr-2"></i>
+                    <span class="user-name-text">Admin</span>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right">
+                    <a class="dropdown-item" href="#" id="logout-link">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="sidebar d-none" id="sidebar">
+        <div class="user-profile">
+            <img src="https://via.placeholder.com/80" alt="User Avatar" class="user-avatar">
+            <div class="user-name">Administrator</div>
+            <div class="user-role">System Admin</div>
+        </div>
+        <a href="#" class="sidebar-link active" id="manage-students-link">
+            <i class="fas fa-users"></i>Manage Students
+        </a>
+        <a href="#" class="sidebar-link" id="reports-link">
+            <i class="fas fa-chart-bar"></i>Reports
+        </a>
+        <a href="#" class="sidebar-link" id="settings-link">
+            <i class="fas fa-cog"></i>Settings
+        </a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div id="main-content" class="fade-transition">
+            <!-- Content will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Check if user is logged in
+            function checkAuth() {
+                const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+                const userData = sessionStorage.getItem('userData');
+                
+                if (!isLoggedIn || !userData) {
+                    // If not logged in, redirect to login page
+                    loadContent('login.html');
+                    hideDashboardElements();
+                    return false;
+                }
+                return true;
+            }
+
+            // Initial page load
+            if (checkAuth()) {
+                showDashboardElements();
+                loadContent('studentManagement.html');
+            }
+
+            // Toggle sidebar
+            $('#sidebar-toggle').click(function() {
+                $('.sidebar').toggleClass('sidebar-hidden');
+                $('.main-content').toggleClass('expanded');
+            });
+
+            // Show loading spinner
+            $(document).ajaxStart(function() {
+                $('.loading-spinner').fadeIn();
+            }).ajaxStop(function() {
+                $('.loading-spinner').fadeOut();
+            });
+
+            // Handle navigation with fade effect
+            function loadContent(url) {
+                $('#main-content').fadeOut(200, function() {
+                    $(this).load(url, function() {
+                        $(this).fadeIn(200);
+                    });
+                });
+            }
+
+            // Navigation handlers
+            $(document).on('click', '#register-link', function(event) {
+                event.preventDefault();
+                loadContent('register.html');
+            });
+
+            $(document).on('click', '#login-link', function(event) {
+                event.preventDefault();
+                loadContent('login.html');
+            });
+
+            $(document).on('click', '#manage-students-link', function(event) {
+                event.preventDefault();
+                if (checkAuth()) {
+                    loadContent('studentManagement.html');
+                }
+            });
+
+            // Logout handler
+            $(document).on('click', '#logout-link', function(event) {
+                event.preventDefault();
+                sessionStorage.clear(); // Clear all session data
+                hideDashboardElements();
+                loadContent('login.html');
+            });
+
+            // Helper functions
+            function showDashboardElements() {
+                $('#sidebar').removeClass('d-none');
+                $('#sidebar-toggle').removeClass('d-none');
+                $('#user-dropdown').removeClass('d-none');
+                $('.main-content').addClass('expanded');
+                
+                // Update user info if available
+                const userData = JSON.parse(sessionStorage.getItem('userData') || '{}');
+                if (userData.firstName) {
+                    $('.user-name').text(userData.firstName + ' ' + (userData.lastName || ''));
+                }
+            }
+
+            function hideDashboardElements() {
+                $('#sidebar').addClass('d-none');
+                $('#sidebar-toggle').addClass('d-none');
+                $('#user-dropdown').addClass('d-none');
+                $('.main-content').removeClass('expanded');
+            }
+
+            // Responsive sidebar
+            function handleResponsiveLayout() {
+                if ($(window).width() < 768) {
+                    $('.sidebar').addClass('sidebar-hidden');
+                    $('.main-content').addClass('expanded');
+                } else {
+                    if (checkAuth()) {
+                        $('.sidebar').removeClass('sidebar-hidden');
+                        $('.main-content').removeClass('expanded');
+                    }
+                }
+            }
+
+            handleResponsiveLayout();
+            $(window).resize(handleResponsiveLayout);
+        });
+    </script>
+</body>
+</html>
